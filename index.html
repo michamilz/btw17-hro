@@ -21,6 +21,7 @@
     <script id="info-template" type="text/x-handlebars-template">
         <div class="entry">
             <h1>{{wname}}</h1>
+            <strong>Wahlbeteiligung: {{Beteiligung}}%</strong>
             <div class="parties">
             {{#each parties as |value key|}}
                 {{key}}: {{value}}%<br>
