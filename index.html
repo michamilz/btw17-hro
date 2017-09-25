@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang=de>
+<head>
+<meta charset=utf-8>
+<title>Wahllokale in MV - Bundestagswahl 2017</title>
+    <link href="css/styles.css" media="all" rel="stylesheet" type="text/css"/>
+    <script src="js/jquery-1.10.2.min.js"></script>
+    <script src="js/raphael.min.js"></script>
+    <script src="js/kartograph.min.js"></script>
+    <script src="js/chroma.min.js"></script>
+    <script src="js/handlebars.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+</head>
+<body>
+
+    <div id="map"></div>
+    <div id="info"></div>
+    <div id="hints">Aus Daten der <a href="https://wahlen.mvnet.de/wahlergebnisse.php?wahl=b">Landeswahlleiterin</a> und <a href="https://www.opendata-hro.de/dataset/bundestagswahl_2017/resource/3ed62c61-89b9-4742-b9f4-6b417c3c1e88?inner_span=True">OpenData.HRO</a>.
+    mit <a href="http://kartograph.org">Kartograph</a> und <a href="http://gka.github.io/chroma.js/">Chroma</a>.</div>
+
+    <script id="info-template" type="text/x-handlebars-template">
+        <div class="entry">
+            <h1>{{wname}}</h1>
+            <div class="parties">
+            {{#each parties as |value key|}}
+                {{key}}: {{value}}%<br>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: {{value}}%;" aria-valuenow="{{value}}" aria-valuemin="0" aria-valuemax="100">{{value}}%</div>
+                </div>
+            {{/each}}
+            </div>
+        </div>
+    </script>
+
+<script>
+var height = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) * 0.9;
+var width = Math.max(document.documentElement.clientWidth, window.innerWidth || 0) * 0.9;
+var map = kartograph.map('#map', width, height);
+var colors = {
+    'cdu': "#000000",
+    'spd':"#e3000f",
+    'dielinke': "#C33574",
+    'gruene': "#75B916",
+    'fdp': "#FECB00",
+    'afd': "#009ee0",
+    'npd': "#f4f4f4",
+    'diepartei': "#f4f4f4",
+    'tierschutzpartei': "#f4f4f4",
+    'bge': "#f4f4f4",
+    'freiewaehler': "#f4f4f4",
+    'mlpd': "#f4f4f4",
+    'oedp': "#f4f4f4"
+};
+var labels = {
+    'cdu': "CDU",
+    'spd':"SPD",
+    'dielinke': "Die Linke",
+    'gruene': "Bündnis 90/DieGrünen",
+    'fdp': "FDP",
+    'afd': "AfD",
+    'npd': "NPD",
+    'diepartei': "Die PARTEI",
+    'tierschutzpartei': "Tierschutzpartei",
+    'bge': "BGE",
+    'freiewaehler': "Freie Wähler",
+    'mlpd': "MLPD",
+    'oedp': "ÖDP"
+};
+
+$.getJSON('daten/rostock.json', function(wahllokale) {
+    map.loadMap('svg/rostock.svg', function() {
+        map.addLayer('layer_0', { 
+            key: 'nummer',
+            title: function(data) { 
+                id = parseInt(data.nummer);
+                wahllokal = wahllokale[id];
+                if (typeof wahllokal !== "undefined") {
+                    return wahllokal.wname;
+                }
+                return ''; 
+            },
+            mouseover: function(data, path, event) {
+                console.log(data);
+                console.log(path);
+                id = parseInt(data.nummer);
+                wahllokal = wahllokale[id];
+                var source   = $("#info-template").html();
+                var template = Handlebars.compile(source);
+                var html = template(wahllokal);
+                $('#info').html(html);
+            },
+            styles: {
+                'stroke-width': 0.5
+            }
+        });
+        map.getLayer('layer_0').style('fill', function(data) {
+            id = parseInt(data.nummer);
+            wahllokal = wahllokale[id];
+            color = colors[wahllokal.winner];
+            color = chroma(color).alpha(wahllokal.Beteiligung / 100).css();
+            return color;
+        });
+    });
+});
+
+</script>
+</body>
+</html>

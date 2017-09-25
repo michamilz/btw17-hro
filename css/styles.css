@@ -1,0 +1,10 @@
+#info {
+    position: absolute;
+    z-index: 10;
+    top: 30px;
+    left: 30px;
+}
+
+#map {
+    max-height: 100%;
+}
